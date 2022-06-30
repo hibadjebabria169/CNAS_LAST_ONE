@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
 import '../Buttons/Button.dart';
@@ -38,8 +39,9 @@ class _LoginFileState extends State<LoginFile> {
                     height: 60,
                     width: 200,
                     child: RaisedButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('SetLocation');
+                      onPressed: () async {
+                        if ((await login()) == 200)
+                          Navigator.of(context).pushNamed('SetLocation');
                       },
                       child: Text(
                         'Login',
@@ -58,5 +60,20 @@ class _LoginFileState extends State<LoginFile> {
         ),
       ],
     );
+  }
+}
+
+final url = "https://ddbf-105-235-129-35.ngrok.io/api/v1/login-patient";
+
+Future<int> login() async {
+  try {
+    Dio client = Dio();
+    final response = await client
+        .post(url, data: {"email": "patient@cnas.dz", "password": "root"});
+    print(response.statusCode);
+    return response.statusCode ?? 500;
+  } catch (err) {
+    return 500;
+    print(err);
   }
 }
