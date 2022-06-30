@@ -1,8 +1,11 @@
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter_application_1/Classes/rdv.dart';
+import 'package:flutter_application_1/Screens/DateTime.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_google_places_hoc081098/flutter_google_places_hoc081098.dart';
@@ -32,6 +35,8 @@ class _DestState extends State<Dest> {
   CameraPosition? cameraPosition;
   LatLng startLocation = LatLng(37.42796133580664, -122.085749655962);
   String location = "Choisissez une destination";
+  double lat = 0.0;
+  double lang = 0.0;
 
   @override
   Widget build(BuildContext context) {
@@ -95,8 +100,8 @@ class _DestState extends State<Dest> {
                       String placeid = place.placeId ?? "0";
                       final detail = await plist.getDetailsByPlaceId(placeid);
                       final geometry = detail.result.geometry!;
-                      final lat = geometry.location.lat;
-                      final lang = geometry.location.lng;
+                      lat = geometry.location.lat;
+                      lang = geometry.location.lng;
                       var newlatlang = LatLng(lat, lang);
 
                       //move map camera to selected place with animation
@@ -129,7 +134,8 @@ class _DestState extends State<Dest> {
                 text: ('Add'),
                 onClicked: () => showModalBottomSheet(
                     context: context,
-                    builder: (context) => buildSheet(location))),
+                    builder: (context) =>
+                        buildSheet(location, lang: lang, lat: lat))),
           ),
         ],
       ),
@@ -162,7 +168,9 @@ Widget buildButton({
       icon: const Icon(Icons.add_circle),
     );
 
-Widget buildSheet(String location) => Column(children: <Widget>[
+Widget buildSheet(String location,
+        {required double lang, required double lat}) =>
+    Column(children: <Widget>[
       SizedBox(height: 40),
       ListTile(
         leading: Icon(
@@ -238,29 +246,39 @@ Widget buildSheet(String location) => Column(children: <Widget>[
             "Lancer",
             style: TextStyle(fontSize: 20, color: Colors.white),
           ),
-          onPressed: () {},
+          onPressed: () async {
+            await postData(lang, lat);
+          },
         ),
       ),
     ]);
 
-final url = 'https://77d3-105-235-129-168.in.ngrok.io/';
+final url = "https://bf8b-154-121-45-224.eu.ngrok.io/api/v1/add-rdv";
 
-void postData() async {
+Future<void> postData(double lang, double lat) async {
   try {
-    final response = await post(Uri.parse(url), body: {
-      'idrdv': '1',
-      'daterdv': '16-09-2019',
-      'locationFrom': '1',
-      'locationTo': '1',
-      'idPatient': '1',
-      'idOperateur': '1',
-      'typeRdv': 'rdv',
-      'longDep': '37.42796133580664',
-      'latDep': 'lang',
-      'longDes': '-122.085749655962',
-      'latDes': 'lat',
-    });
+    DateTime date = DateTime.now();
+    int day = date.day;
+    int month = date.month;
+    int year = date.year;
+    RendezVous rdvv = RendezVous(
+        idRdv: 1,
+        dateRdv: "${day}-${month}-${year}",
+        typeRdv: "rdv",
+        longDep: 37.42796133580664,
+        longDes: lang,
+        latDep: -122.085749655962,
+        latDes: lat,
+        idOperateur: 1,
+        idPatient: 1,
+        locationFrom: "alger",
+        locationTo: "beb-oued");
+    print(rdvv.idRdv);
+    Dio client = Dio();
+    final response = await client.post(url, data: rdvv.toJson());
+    print(response.statusCode);
   } catch (err) {
     print(err);
   }
 }
+
