@@ -9,6 +9,7 @@ import 'package:flutter_google_places_hoc081098/flutter_google_places_hoc081098.
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
+import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 
 class Dest extends StatefulWidget {
@@ -241,3 +242,25 @@ Widget buildSheet(String location) => Column(children: <Widget>[
         ),
       ),
     ]);
+
+final url = 'https://77d3-105-235-129-168.in.ngrok.io/';
+
+void postData() async {
+  try {
+    final response = await post(Uri.parse(url), body: {
+      'idrdv': '1',
+      'daterdv': '16-09-2019',
+      'locationFrom': '1',
+      'locationTo': '1',
+      'idPatient': '1',
+      'idOperateur': '1',
+      'typeRdv': 'rdv',
+      'longDep': '37.42796133580664',
+      'latDep': 'lang',
+      'longDes': '-122.085749655962',
+      'latDes': 'lat',
+    });
+  } catch (err) {
+    print(err);
+  }
+}
